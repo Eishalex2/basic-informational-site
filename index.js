@@ -1,36 +1,16 @@
-import http from 'http';
-import fs from 'fs';
 import path from 'path';
 import * as url from 'url';
+import express from 'express'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-const server = http.createServer((req, res) => {
-  let filePath = path.join(
-    __dirname, 
-    'public', 
-    req.url === '/' ? 'index' : req.url
-  );
+const app = express();
+const port = 8080;
 
-  fs.readFile(filePath + '.html', (err, content) => {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        // Page not found
-        fs.readFile(path.join(__dirname, 'public', '404.html'), (err, content) => {
-          res.writeHead(200, { 'Content-Type': 'text/html' });
-          res.end(content, 'utf8');
-        });
-      } else {
-        // server error
-        res.writeHead(500);
-        res.end(`Server error: ${err.code}`);
-      }
-    } else {
-      // success
-      res.writeHead(200, { 'Content-Type': 'text/html'});
-      res.end(content, 'utf8');
-    }
-  });
+app.use(express.static("public", { extensions: ['html'] }));
+
+app.use(function (req, res) {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
-server.listen(8080, () => console.log('Server running on port 8080'));
+app.listen(port, () => console.log(`Server running on port ${port}`));
